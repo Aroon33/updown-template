@@ -141,10 +141,12 @@ a {
 <div class="video-wrapper">
     <video controls muted>
         <source src="{{ url_for('serve_project_file', project_id=project_id, filename='video.mp4') }}" type="video/mp4">
-        <track src="{{ url_for('serve_project_file', project_id=project_id, filename='video.vtt') }}"
-               kind="subtitles"
-               srclang="ja"
-               label="Japanese">
+        <track
+    src="{{ url_for('serve_project_file', project_id=project_id, filename='video.vtt') }}"
+    kind="subtitles"
+    srclang="ja"
+    label="Japanese"
+    default>
     </video>
 
     <div id="subtitle-preview">サンプルテキスト</div>
@@ -155,6 +157,8 @@ a {
     <h3>VTT編集</h3>
     <textarea id="vttEditor" rows="12">{{ vtt_content }}</textarea>
     <button type="button" onclick="saveVTT()">💾 保存</button>
+
+    <button onclick="autoCorrectVTT()">誤字修正</button>
 
     <button onclick="changeVttSize(-2)">VTT小</button>
     <button onclick="changeVttSize(2)">VTT大</button>
