@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Play Video</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    background: #111;
+    padding: 30px;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+/* 🎬 動画エリア */
+.video-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+video {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    border-radius: 8px;
+}
+
+video::cue {
+    font-size: var(--vtt-size, 20px);
+}
+
+/* 🔥 JS制御字幕 */
+#subtitle-preview {
+    position: absolute;
+
+    left: 50%;
+    bottom: 8%;              /* 🔥 下基準に固定 */
+    transform: translateX(-50%);
+
+    display: inline-block;
+    max-width: 85%;
+
+    text-align: center;
+    color: white;
+
+    white-space: normal;
+    word-break: break-word;
+
+    cursor: move;
+    user-select: none;
+
+    padding: 6px 14px;
+    border-radius: 0;
+
+    z-index: 10;             /* 🔥 忘れがち */
+
+    /* 影の初期値（JSで上書き） */
+    text-shadow: 2px 2px 6px black;
+}
+
+/* ===== サイドバー ===== */
+
+.control-panel {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 320px;
+    height: 100vh;
+    background: #1a1a1a;
+    padding: 15px 15px 120px 15px;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    font-size: 13px;
+}
+
+.control-panel.open {
+    left: 0;
+}
+
+.section-divider {
+    margin:15px 0;
+    border-top:1px solid #333;
+}
+
+#togglePanelBtn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+    background: #333;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button {
+    margin:5px 0;
+    padding:6px 10px;
+    background:#333;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size: 12px;
+}
+
+button:hover {
+    background:#555;
+}
+
+input, select, textarea {
+    width:100%;
+    margin-top:5px;
+    padding:6px;
+    border-radius:6px;
+    border:none;
+    font-size:12px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+a {
+    color:#aaa;
+    display:block;
+    margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<button id="togglePanelBtn" type="button">⚙ 設定</button>
+
+<div class="video-wrapper">
+    <video controls muted>
+        <source src="{{ url_for('serve_project_file', project_id=project_id, filename='video.mp4') }}" type="video/mp4">
+        <track src="{{ url_for('serve_project_file', project_id=project_id, filename='video.vtt') }}"
+               kind="subtitles"
+               srclang="ja"
+               label="Japanese">
+    </video>
+
+    <div id="subtitle-preview">サンプルテキスト</div>
+</div>
+
+<div class="control-panel" id="controlPanel">
+
+    <h3>VTT編集</h3>
+    <textarea id="vttEditor" rows="12">{{ vtt_content }}</textarea>
+    <button type="button" onclick="saveVTT()">💾 保存</button>
+
+    <button onclick="changeVttSize(-2)">VTT小</button>
+    <button onclick="changeVttSize(2)">VTT大</button>
+
+    <div class="section-divider"></div>
+
+    <h3>字幕設定</h3>
+
+    <textarea id="sampleTextInput" rows="2">サンプルテキスト</textarea>
+
+    <button type="button" onclick="toggleVTT()">VTT ON / OFF</button>
+
+    <button type="button" onclick="toggleHtmlPreview()">HTML ON / OFF</button>
+
+    <div>
+        <button onclick="setPositionPreset('bottom')">下</button>
+        <button onclick="setPositionPreset('middle')">中央</button>
+        <button onclick="setPositionPreset('top')">上</button>
+    </div>
+
+    <div>
+        <button onclick="changeSize(-0.01)">-</button>
+        <span id="sizeDisplay">6</span>%
+        <button onclick="changeSize(0.01)">+</button>
+    </div>
+
+    <div>
+        <label>文字色</label>
+        <select id="colorSelect">
+            <option value="&H00FFFFFF">White</option>
+            <option value="&H000000FF">Red</option>
+            <option value="&H0000FFFF">Yellow</option>
+            <option value="&H00FF0000">Blue</option>
+            <option value="&H00000000">Black</option>
+        </select>
+    </div>
+
+    <div>
+        <label>フォント</label>
+        <select id="fontSelect">
+            <option value="Arial">Arial</option>
+            <option value="Noto Sans JP">Noto Sans JP</option>
+            <option value="MS Gothic">MS Gothic</option>
+            <option value="Yu Gothic">Yu Gothic</option>
+        </select>
+    </div>
+
+    <div>
+    <label>縁取り</label>
+    <select id="outlinePreset">
+        <option value="none">縁なし</option>
+        <option value="thin">細い黒</option>
+        <option value="thick" selected>太い黒</option>
+        <option value="white">太い白</option>
+    </select>
+</div>
+
+<!-- 🔥 影 -->
+<div>
+    <label>影</label>
+    <select id="shadowPreset">
+        <option value="none">影なし</option>
+        <option value="soft">薄い影</option>
+        <option value="strong">強い影</option>
+    </select>
+</div>
+
+    <div>
+        <label>背景</label>
+        <select id="boxPreset">
+            <option value="none">なし</option>
+            <option value="dark">半透明黒</option>
+            <option value="light">半透明白</option>
+        </select>
+    </div>
+
+    <h3>プリセット</h3>
+
+<select id="layoutSelect">
+  <option value="vertical">縦動画</option>
+  <option value="horizontal">横動画</option>
+</select>
+
+<select id="presetSelect">
+  <option value="standard">standard</option>
+  <option value="strong">strong</option>
+  <option value="center_impact">center_impact</option>
+  <option value="box_soft">box_soft</option>
+  <option value="minimal">minimal</option>
+</select>
+
+<button onclick="applyPreset()">適用</button>
+
+    <button type="button" onclick="saveStyle('{{ project_id }}')">
+        🔒 この設定を保存
+    </button>
+
+    <div class="section-divider"></div>
+
+    <h3>書き出し</h3>
+
+    <form method="POST" action="{{ url_for('export_video', project_id=project_id) }}">
+        <button type="submit" name="type" value="youtube">YouTube</button>
+        <button type="submit" name="type" value="tiktok">TikTok</button>
+    </form>
+
+    <div class="section-divider"></div>
+
+    <a href="{{ url_for('index') }}">← Back</a>
+
+</div>
+
+<script>
+window.projectId = "{{ project_id }}";
+window.initialStyle = JSON.parse('{{ style | tojson | safe }}');
+</script>
+
+<script src="{{ url_for('static', filename='js/player.js') }}"></script>
+
+</body>
+</html>

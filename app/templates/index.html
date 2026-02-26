@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Manager</title>
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#111111">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 40px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        form {
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            width: 400px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 8px 15px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .thumbnail {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .filename {
+            font-size: 13px;
+            color: #555;
+            word-break: break-word;
+            margin-bottom: 10px;
+        }
+
+        .edit-btn {
+            display: inline-block;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<h2>YouTube Downloader</h2>
+
+<form method="POST" action="/download" onsubmit="showLoading()">
+    <input type="text" name="url" placeholder="YouTube URL" required>
+    <button type="submit">Download</button>
+</form>
+
+<hr>
+
+<a href="{{ url_for('exports_list') }}">
+    <button type="button">完成動画を見る</button>
+</a>
+
+<h3>Projects</h3>
+
+<div class="grid">
+{% for project in projects %}
+
+    <div class="card">
+
+        <!-- サムネ -->
+        {% if project.thumb_exists %}
+            <a href="{{ url_for('play_video', project_id=project.project_id) }}">
+                <img class="thumbnail"
+                     src="{{ url_for('serve_project_file',
+                                     project_id=project.project_id,
+                                     filename='video.jpg') }}">
+            </a>
+        {% endif %}
+
+        <!-- タイトル -->
+        <div class="filename">
+            {{ project.title }}
+        </div>
+
+        <!-- 作成日 -->
+        <div style="font-size:12px;color:#777;margin-bottom:10px;">
+            {{ project.created_at }}
+        </div>
+
+        <!-- 再生 -->
+        <a href="{{ url_for('play_video', project_id=project.project_id) }}">
+            <button type="button">Play</button>
+        </a>
+
+        <!-- 編集 -->
+        <a href="{{ url_for('edit_text', project_id=project.project_id, type='vtt') }}">
+            <button type="button">Edit VTT</button>
+        </a>
+
+        <a href="{{ url_for('edit_text', project_id=project.project_id, type='ass') }}">
+            <button type="button">Edit ASS</button>
+        </a>
+
+    </div>
+
+{% endfor %}
+</div>
+
+<div id="loading" style="display:none; color:red; margin-top:10px;">
+Processing... Please wait...
+</div>
+
+<script>
+function showLoading() {
+    document.getElementById("loading").style.display = "block";
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/js/sw.js')
+    .then(function() {
+      console.log('Service Worker Registered');
+    });
+}
+</script>
+
+
+</body>
+</html>
+

@@ -1,0 +1,16 @@
+{
+  "font_ratio": 0.06,
+  "vertical_ratio": 0.08,
+  "alignment": 2,
+
+  "fontname": "Noto Sans JP",
+  "fontcolor": "&H00FFFFFF",
+
+  "outline": 3,
+  "outlinecolor": "&H00000000",
+  "shadow": 1,
+
+  "box_enabled": false,
+  "box_opacity": "AA",
+  "box_color": "&H00000000"
+}

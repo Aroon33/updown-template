@@ -1,0 +1,11 @@
+{
+  "font_ratio": 0.055,
+  "vertical_ratio": 0.3,
+  "alignment": 5,
+  "fontname": "Noto Sans CJK JP",
+  "fontcolor": "&H00FFFFFF",
+  "outline": 4,
+  "outlinecolor": "&H00000000",
+  "shadow": 3,
+  "box_enabled": false
+}

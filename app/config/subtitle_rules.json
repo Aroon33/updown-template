@@ -1,0 +1,17 @@
+{
+  "horizontal": {
+    "safe_margin_ratio": 0.10,
+    "max_chars_per_line": 22,
+    "default_font_ratio": 0.05,
+    "default_vertical_ratio": 0.10
+  },
+  "vertical": {
+    "safe_margin_ratio": 0.07,
+    "max_chars_per_line": 14,
+    "default_font_ratio": 0.048,
+    "default_vertical_ratio": 0.08
+  },
+  "wrap_rules": {
+    "respect_user_linebreak": true
+  }
+}

@@ -1,0 +1,15 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Generated
+app/downloads/
+app/exports/
+app/projects/
+
+# Logs
+*.log
+
+# OS
+.DS_Store

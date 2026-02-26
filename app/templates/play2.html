@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Play Video</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin:0;
+    background:#111;
+    padding:30px;
+    color:white;
+    font-family:'Noto Sans JP', sans-serif;
+}
+
+/* VTT編集 */
+#vttEditor {
+    width:100%;
+    height:200px;
+    margin-bottom:20px;
+}
+
+/* レイアウト */
+.main {
+    display:flex;
+    gap:30px;
+}
+
+.video-area {
+    position:relative;
+}
+
+video {
+    width:360px;
+    border-radius:10px;
+}
+
+/* 字幕プレビュー */
+#subtitle-preview {
+    position:absolute;
+    left:0;
+    width:100%;
+    text-align:center;
+    pointer-events:none;
+    color:white;
+    text-shadow:2px 2px 6px black;
+    bottom:30px;
+    font-size:42px;
+}
+
+/* コントロール */
+.panel {
+    width:300px;
+}
+
+button {
+    padding:6px 10px;
+    margin:4px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>VTT編集</h2>
+<textarea id="vttEditor">{{ vtt_content }}</textarea>
+<button onclick="saveVTT()">保存</button>
+
+<div class="main">
+
+<div class="video-area">
+    <video controls>
+        <source src="{{ url_for('serve_project_file', project_id=project_id, filename='video.mp4') }}" type="video/mp4">
+    </video>
+
+    <div id="subtitle-preview">
+        サンプル字幕テキスト
+    </div>
+</div>
+
+<div class="panel">
+
+<h3>フォントサイズ</h3>
+<button onclick="changeFont(-2)">-</button>
+<button onclick="changeFont(2)">+</button>
+
+<h3>位置</h3>
+<button onclick="setPosition('bottom')">下</button>
+<button onclick="setPosition('middle')">中央</button>
+<button onclick="setPosition('top')">上</button>
+
+<h3>プレビューテキスト</h3>
+<textarea id="previewText">サンプル字幕テキスト</textarea>
+
+<button onclick="saveStyle()">設定保存</button>
+
+</div>
+</div>
+
+<script>
+
+let styleConfig = {
+    fontsize: 42,
+    alignment: 2,
+    marginv: 30
+};
+
+function changeFont(val){
+    styleConfig.fontsize += val;
+    document.getElementById("subtitle-preview").style.fontSize = styleConfig.fontsize + "px";
+}
+
+function setPosition(pos){
+    const el = document.getElementById("subtitle-preview");
+
+    if(pos==="bottom"){
+        el.style.top="";
+        el.style.bottom="30px";
+        styleConfig.alignment = 2;
+        styleConfig.marginv = 30;
+    }
+
+    if(pos==="middle"){
+        el.style.top="50%";
+        el.style.bottom="";
+        el.style.transform="translateY(-50%)";
+        styleConfig.alignment = 5;
+        styleConfig.marginv = 0;
+    }
+
+    if(pos==="top"){
+        el.style.top="30px";
+        el.style.bottom="";
+        styleConfig.alignment = 8;
+        styleConfig.marginv = 30;
+    }
+}
+
+document.getElementById("previewText").addEventListener("input", function(){
+    document.getElementById("subtitle-preview").innerText = this.value;
+});
+
+function saveVTT(){
+    fetch("/save/{{ project_id }}", {
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:"filetype=vtt&content="+encodeURIComponent(document.getElementById("vttEditor").value)
+    }).then(()=>alert("VTT保存完了"));
+}
+
+function saveStyle(){
+    fetch("/save_style/{{ project_id }}", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(styleConfig)
+    }).then(()=>alert("スタイル保存完了"));
+}
+
+</script>
+
+</body>
+</html>

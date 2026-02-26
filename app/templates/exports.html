@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Exported Videos</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    padding: 40px;
+}
+
+.tabs {
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: #1e293b;
+    border: none;
+    color: white;
+    margin-right: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.tab-btn.active {
+    background: #2563eb;
+}
+
+.category-section {
+    display: none;
+}
+
+.project-card {
+    background: #1e293b;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
+
+video {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+}
+</style>
+
+<script>
+function showCategory(category) {
+
+    document.querySelectorAll(".category-section")
+        .forEach(el => el.style.display = "none");
+
+    document.querySelectorAll(".tab-btn")
+        .forEach(el => el.classList.remove("active"));
+
+    document.getElementById(category).style.display = "block";
+    document.getElementById("btn-" + category)
+        .classList.add("active");
+}
+
+window.onload = function() {
+    showCategory("youtube");
+}
+</script>
+
+</head>
+<body>
+
+<h1>完成動画一覧</h1>
+
+<div class="tabs">
+    <button id="btn-youtube"
+            class="tab-btn"
+            onclick="showCategory('youtube')">YouTube</button>
+
+    <button id="btn-tiktok"
+            class="tab-btn"
+            onclick="showCategory('tiktok')">TikTok</button>
+</div>
+
+<!-- YouTube -->
+<div id="youtube" class="category-section">
+
+{% for project in project_exports %}
+    {% if project.files.youtube %}
+    <div class="project-card">
+        <strong>{{ project.title }}</strong><br>
+        <small>{{ project.created_at }}</small>
+
+        {% for file in project.files.youtube %}
+        <video controls>
+            <source src="{{ url_for('serve_export_file',
+                                    project_id=project.project_id,
+                                    filename=file) }}"
+                    type="video/mp4">
+        </video>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endfor %}
+
+</div>
+
+<!-- TikTok -->
+<div id="tiktok" class="category-section">
+
+{% for project in project_exports %}
+    {% if project.files.tiktok %}
+    <div class="project-card">
+        <strong>{{ project.title }}</strong><br>
+        <small>{{ project.created_at }}</small>
+
+        {% for file in project.files.tiktok %}
+        <video controls>
+            <source src="{{ url_for('serve_export_file',
+                                    project_id=project.project_id,
+                                    filename=file) }}"
+                    type="video/mp4">
+        </video>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endfor %}
+
+</div>
+
+<br><br>
+<a href="{{ url_for('index') }}">← 戻る</a>
+
+</body>
+</html>

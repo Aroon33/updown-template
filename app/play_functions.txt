@@ -1,0 +1,27 @@
+
+=== static/js/player.js ===
+changeSize
+closeVTTModal
+openVTTModal
+parseVTT
+saveSubtitleSettings
+saveVTT
+saveVideoRelativePosition
+setPositionPreset
+toSeconds
+toggleVTT
+updateFontSize
+
+=== app.py ===
+convert_time
+download
+edit_text
+export_video
+exports_list
+index
+play_video
+save_settings
+save_text
+serve_export_file
+serve_project_file
+vtt_to_ass
