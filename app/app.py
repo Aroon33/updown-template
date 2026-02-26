@@ -1,4 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+
+
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
+from openai import OpenAI
 import os
 import subprocess
 import shutil
@@ -27,6 +30,11 @@ WHISPER_PATH = "/var/www/updown-template.com/venv/bin/whisper"
 YTDLP_PATH = "/var/www/updown-template.com/venv/bin/yt-dlp"
 
 app = Flask(__name__)
+
+# =========================
+# OpenAI
+# =========================
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 os.makedirs(PROJECTS_DIR, exist_ok=True)
@@ -341,11 +349,6 @@ def download():
     if whisper_result.returncode != 0:
         return f"Whisper Error:<br><pre>{whisper_result.stderr}</pre>"
 
-    vtt_path = latest_video.replace(".mp4", ".vtt")
-    ass_path = latest_video.replace(".mp4", ".ass")
-
-    if os.path.exists(vtt_path):
-        vtt_to_ass(vtt_path, ass_path)
 
     metadata = {
         "project_id": project_id,
@@ -472,6 +475,58 @@ def play_video(project_id):
         vtt_content=vtt_content
     )
 
+# =========================
+# VTT AUTO CORRECT（安全版）
+# =========================
+@app.route("/api/vtt/correct", methods=["POST"])
+def correct_vtt_api():
+
+    if not request.is_json:
+        return jsonify({"error": "Invalid JSON"}), 400
+
+    data = request.get_json()
+    vtt_text = data.get("vtt")
+
+    if not vtt_text:
+        return jsonify({"error": "No VTT provided"}), 400
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            temperature=0,
+            messages=[
+                {
+                    "role": "system",
+                    "content": """
+あなたは厳密な校正エンジンです。
+以下を絶対に守ってください。
+
+・タイムスタンプは一切変更しない
+・WEBVTTヘッダーを変更しない
+・文章構造を変更しない
+・推測補完しない
+・言い換えしない
+・意味を変えない
+・存在しない単語を作らない
+・明確な誤字のみ修正する
+・修正できない部分はそのまま出力する
+
+出力はVTTテキストのみ。
+"""
+                },
+                {
+                    "role": "user",
+                    "content": vtt_text
+                }
+            ]
+        )
+
+        corrected = response.choices[0].message.content
+
+        return jsonify({"corrected": corrected})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # =========================
 # SAVE STYLE

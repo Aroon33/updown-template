@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Play Video</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 
@@ -35,29 +36,20 @@ video::cue {
 /* 🔥 JS制御字幕 */
 #subtitle-preview {
     position: absolute;
-
     left: 50%;
-    bottom: 8%;              /* 🔥 下基準に固定 */
+    bottom: 8%;
     transform: translateX(-50%);
-
     display: inline-block;
     max-width: 85%;
-
     text-align: center;
     color: white;
-
     white-space: normal;
     word-break: break-word;
-
     cursor: move;
     user-select: none;
-
     padding: 6px 14px;
     border-radius: 0;
-
-    z-index: 10;             /* 🔥 忘れがち */
-
-    /* 影の初期値（JSで上書き） */
+    z-index: 10;
     text-shadow: 2px 2px 6px black;
 }
 
@@ -131,6 +123,58 @@ a {
     display:block;
     margin-top:20px;
 }
+
+/* =========================
+   🔥 MOBILE OPTIMIZATION
+========================= */
+@media screen and (max-width: 768px) {
+
+    body {
+        padding: 10px;
+    }
+
+    .video-wrapper {
+        width: 100%;
+        display: block;
+    }
+
+    video {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 6px;
+    }
+
+    #subtitle-preview {
+        max-width: 90%;
+        font-size: 16px;
+    }
+
+    #togglePanelBtn {
+        top: 10px;
+        left: 10px;
+        padding: 6px 10px;
+    }
+
+    .control-panel {
+        width: 100%;
+        left: -100%;
+        font-size: 14px;
+    }
+
+    .control-panel.open {
+        left: 0;
+    }
+
+    button {
+        width: 100%;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    textarea {
+        font-size: 14px;
+    }
+}
 </style>
 </head>
 
@@ -142,11 +186,11 @@ a {
     <video controls muted>
         <source src="{{ url_for('serve_project_file', project_id=project_id, filename='video.mp4') }}" type="video/mp4">
         <track
-    src="{{ url_for('serve_project_file', project_id=project_id, filename='video.vtt') }}"
-    kind="subtitles"
-    srclang="ja"
-    label="Japanese"
-    default>
+            src="{{ url_for('serve_project_file', project_id=project_id, filename='video.vtt') }}"
+            kind="subtitles"
+            srclang="ja"
+            label="Japanese"
+            default>
     </video>
 
     <div id="subtitle-preview">サンプルテキスト</div>
@@ -157,9 +201,7 @@ a {
     <h3>VTT編集</h3>
     <textarea id="vttEditor" rows="12">{{ vtt_content }}</textarea>
     <button type="button" onclick="saveVTT()">💾 保存</button>
-
     <button onclick="autoCorrectVTT()">誤字修正</button>
-
     <button onclick="changeVttSize(-2)">VTT小</button>
     <button onclick="changeVttSize(2)">VTT大</button>
 
@@ -170,7 +212,6 @@ a {
     <textarea id="sampleTextInput" rows="2">サンプルテキスト</textarea>
 
     <button type="button" onclick="toggleVTT()">VTT ON / OFF</button>
-
     <button type="button" onclick="toggleHtmlPreview()">HTML ON / OFF</button>
 
     <div>
@@ -207,24 +248,23 @@ a {
     </div>
 
     <div>
-    <label>縁取り</label>
-    <select id="outlinePreset">
-        <option value="none">縁なし</option>
-        <option value="thin">細い黒</option>
-        <option value="thick" selected>太い黒</option>
-        <option value="white">太い白</option>
-    </select>
-</div>
+        <label>縁取り</label>
+        <select id="outlinePreset">
+            <option value="none">縁なし</option>
+            <option value="thin">細い黒</option>
+            <option value="thick" selected>太い黒</option>
+            <option value="white">太い白</option>
+        </select>
+    </div>
 
-<!-- 🔥 影 -->
-<div>
-    <label>影</label>
-    <select id="shadowPreset">
-        <option value="none">影なし</option>
-        <option value="soft">薄い影</option>
-        <option value="strong">強い影</option>
-    </select>
-</div>
+    <div>
+        <label>影</label>
+        <select id="shadowPreset">
+            <option value="none">影なし</option>
+            <option value="soft">薄い影</option>
+            <option value="strong">強い影</option>
+        </select>
+    </div>
 
     <div>
         <label>背景</label>
@@ -237,20 +277,20 @@ a {
 
     <h3>プリセット</h3>
 
-<select id="layoutSelect">
-  <option value="vertical">縦動画</option>
-  <option value="horizontal">横動画</option>
-</select>
+    <select id="layoutSelect">
+        <option value="vertical">縦動画</option>
+        <option value="horizontal">横動画</option>
+    </select>
 
-<select id="presetSelect">
-  <option value="standard">standard</option>
-  <option value="strong">strong</option>
-  <option value="center_impact">center_impact</option>
-  <option value="box_soft">box_soft</option>
-  <option value="minimal">minimal</option>
-</select>
+    <select id="presetSelect">
+        <option value="standard">standard</option>
+        <option value="strong">strong</option>
+        <option value="center_impact">center_impact</option>
+        <option value="box_soft">box_soft</option>
+        <option value="minimal">minimal</option>
+    </select>
 
-<button onclick="applyPreset()">適用</button>
+    <button onclick="applyPreset()">適用</button>
 
     <button type="button" onclick="saveStyle('{{ project_id }}')">
         🔒 この設定を保存

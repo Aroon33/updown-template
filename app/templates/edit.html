@@ -63,5 +63,11 @@
     <button type="button">Back</button>
 </a>
 
+<script>
+if (window.parent && window.parent !== window) {
+    window.parent.location.reload();
+}
+</script>
+
 </body>
 </html>

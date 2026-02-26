@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const video = document.querySelector("video");
     const preview = document.getElementById("subtitle-preview");
 
+    // 🔥 初期状態：HTML字幕は非表示（VTT優先）
+    if (preview) {
+        preview.style.display = "none";
+    }
+
+
     function getVideoRect() {
         return video.getBoundingClientRect();
     }
@@ -244,16 +250,22 @@ function updatePosition() {
 
     // 🔥 VTT ON/OFF
     window.toggleVTT = function () {
+
+        const video = document.querySelector("video");
         const tracks = video.textTracks;
-        if (tracks.length > 0) {
-            if (vttEnabled) {
-                tracks[0].mode = "hidden";
-                vttEnabled = false;
-            } else {
-                tracks[0].mode = "showing";
-                vttEnabled = true;
-            }
+
+        if (!tracks || tracks.length === 0) {
+            console.log("No text tracks found");
+            return;
         }
+
+        const track = tracks[0];
+
+        track.mode = (track.mode === "showing")
+            ? "hidden"
+            : "showing";
+
+        console.log("Current VTT mode:", track.mode);
     };
 
 
@@ -263,16 +275,18 @@ function updatePosition() {
         const root = document.documentElement;
 
         let current = parseFloat(
-           getComputedStyle(root)
-           .getPropertyValue('--vtt-size')
+            getComputedStyle(root)
+            .getPropertyValue('--vtt-size')
         ) || 20;
 
         let newSize = current + delta;
 
         if (newSize < 10) newSize = 10;
-        if (newSize > 60) newSize = 60;
+        if (newSize > 80) newSize = 80;
 
         root.style.setProperty('--vtt-size', newSize + "px");
+
+        console.log("VTT size:", newSize);
     };
 
     window.toggleHtmlPreview = function () {
@@ -302,6 +316,8 @@ function updatePosition() {
         });
     }
 
+    
+
     // 🔥 VTT保存
     window.saveVTT = function () {
 
@@ -324,6 +340,41 @@ function updatePosition() {
             alert("保存失敗");
             console.error(err);
         });
+    };
+
+    // 🔥 VTT誤字修正
+    window.autoCorrectVTT = async function () {
+
+        const textarea = document.getElementById("vttEditor");
+        if (!textarea) {
+            alert("VTTエディタが見つかりません");
+            return;
+        }
+
+        const vtt = textarea.value;
+
+        try {
+            const res = await fetch("/api/vtt/correct", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ vtt })
+            });
+
+            const data = await res.json();
+
+            if (data.corrected) {
+                textarea.value = data.corrected;
+                alert("誤字修正完了");
+            } else {
+                alert("修正失敗");
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("通信エラー");
+        }
     };
 
     // 🔥 スタイル保存
@@ -365,8 +416,16 @@ function updatePosition() {
 
     // 初期化
     video.addEventListener("loadedmetadata", function () {
+
         updateFontSize();
         updatePosition();
+
+    // 🔥 VTTを強制ON（Chrome対策）
+        const tracks = video.textTracks;
+        if (tracks && tracks.length > 0) {
+            tracks[0].mode = "showing";
+            console.log("VTT forced ON");
+        }
     });
 
 });
